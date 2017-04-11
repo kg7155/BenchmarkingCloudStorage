@@ -20,23 +20,43 @@ namespace BenchmarkingCloudStorage
             // Size of each file.
             int k = 1;
 
-            // m = MB; k = KB
+            // Type of file's size. m = MB; k = KB
             char type = 'k';
 
             GenerateLoad(n, k, type);
+            GoogleDriveUpload(n, k, type);
+            MegaUpload(n, k, type);
+            Console.ReadLine();
+        }
 
+        private static void MegaUpload(int n, int k, char type)
+        {
+            Mega m = new Mega();
+            m.StartService();
+            
+            DateTime t1 = DateTime.Now;
+
+            for (var i = 0; i < n; i++)
+                m.UploadFile($"out{i}.bin");
+            
+            TimeSpan t = DateTime.Now - t1;
+
+            Console.WriteLine("Mega - Upload time of {0} files each of size {1} {2}B: {3} s", n, k, type, t.TotalSeconds);
+        }
+
+        private static void GoogleDriveUpload(int n, int k, char type)
+        {
             GoogleDrive gd = new GoogleDrive();
             gd.StartService();
 
             DateTime t1 = DateTime.Now;
+
             for (var i = 0; i < n; i++)
-            {
-                gd.UploadFile($"out{i}.bin");    
-            }
+                gd.UploadFile($"out{i}.bin");
+
             TimeSpan t = DateTime.Now - t1;
-           
-            Console.WriteLine("Time taken to upload {0} files each of size {1}{2}B: {3} s", n, k, type, t.TotalSeconds);
-            gd.ListFiles();
+
+            Console.WriteLine("Google Drive - Upload time of {0} files each of size {1} {2}B: {3} s", n, k, type, t.TotalSeconds);
         }
         
         // Generate n files, each file of size k
