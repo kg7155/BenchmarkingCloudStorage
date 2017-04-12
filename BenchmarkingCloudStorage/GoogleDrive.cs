@@ -53,45 +53,23 @@ namespace BenchmarkingCloudStorage
             });
         }
         
-        public void UploadFile(string filePath)
+        public void UploadFile(Stream stream, string filepath)
         {
-            if (System.IO.File.Exists(filePath))
+            File body = new File
             {
-                File body = new File();
-                body.Name = Path.GetFileName(filePath);
-                body.Description = "Test upload";
-                body.MimeType = GetMimeType(filePath);
-
-                // File's content. 
-                byte[] byteArray = System.IO.File.ReadAllBytes(filePath);
-                MemoryStream stream = new MemoryStream(byteArray);
-
-                try
-                {
-                    FilesResource.CreateMediaUpload request = _service.Files.Create(body, stream, GetMimeType(filePath));
-                    request.Upload();
-                    return;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("An error occurred: " + e.Message);
-                    return;
-                }
+                Name = Path.GetFileName(filepath),
+                MimeType = "application/unknown"
+            };
+            
+            try
+            {
+                FilesResource.CreateMediaUpload request = _service.Files.Create(body, stream, body.MimeType);
+                request.Upload();
             }
-            Console.WriteLine("File does not exist: " + filePath);
-        }
-
-        // Get the mime type of the file. 
-        private string GetMimeType(string fileName)
-        {
-            string mimeType = "application/unknown";
-            string ext = Path.GetExtension(fileName)?.ToLower();
-            RegistryKey regKey = Registry.ClassesRoot.OpenSubKey(ext);
-
-            if (regKey != null && regKey.GetValue("Content Type") != null)
-                mimeType = regKey.GetValue("Content Type").ToString();
-
-            return mimeType;
+            catch (Exception e)
+            {
+                Console.WriteLine("An error occurred: " + e.Message);
+            }
         }
 
         public void ListFiles()
@@ -116,6 +94,11 @@ namespace BenchmarkingCloudStorage
                 Console.WriteLine("No files found.");
             }
             Console.ReadLine();
+        }
+
+        public string GetName()
+        {
+            return "Google Drive";
         }
     }
 }

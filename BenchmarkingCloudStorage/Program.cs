@@ -1,17 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace BenchmarkingCloudStorage
 {
     public interface IClouds
     {
         void StartService();
-        void UploadFile(string filePath);
+        void UploadFile(Stream stream, string filepath);
         void ListFiles();
+        string GetName();
     }
 
     class Program
     {
+        enum Type { KB = 10, MB = 20 }
+
         static void Main(string[] args)
         {
             // Number of files.
@@ -20,53 +25,48 @@ namespace BenchmarkingCloudStorage
             // Size of each file.
             int k = 1;
 
-            // Type of file's size. m = MB; k = KB
-            char type = 'k';
-
+            // Type of file's size.
+            var type = Type.KB;
+            
             GenerateLoad(n, k, type);
-            GoogleDriveUpload(n, k, type);
-            MegaUpload(n, k, type);
+
+            GoogleDrive gd = new GoogleDrive();
+            Mega m = new Mega();
+
+            Upload(gd, n, k, type);
+            Upload(m, n, k, type);
             Console.ReadLine();
         }
 
-        private static void MegaUpload(int n, int k, char type)
+        private static void Upload(IClouds cloud, int n, int k, Type type)
         {
-            Mega m = new Mega();
-            m.StartService();
-            
-            DateTime t1 = DateTime.Now;
+            cloud.StartService();
+
+            List<Stream> streams = new List<Stream>();
 
             for (var i = 0; i < n; i++)
-                m.UploadFile($"out{i}.bin");
-            
-            TimeSpan t = DateTime.Now - t1;
-
-            Console.WriteLine("Mega - Upload time of {0} files each of size {1} {2}B: {3} s", n, k, type, t.TotalSeconds);
-        }
-
-        private static void GoogleDriveUpload(int n, int k, char type)
-        {
-            GoogleDrive gd = new GoogleDrive();
-            gd.StartService();
+            {
+                byte[] byteArray = File.ReadAllBytes($"out{i}.bin");
+                streams.Add(new MemoryStream(byteArray));
+            }
 
             DateTime t1 = DateTime.Now;
 
-            for (var i = 0; i < n; i++)
-                gd.UploadFile($"out{i}.bin");
-
+            for (var j = 0; j < n; j++)
+            {
+                cloud.UploadFile(streams.ElementAt(j), $"out{j}.bin");
+            }
+            
             TimeSpan t = DateTime.Now - t1;
 
-            Console.WriteLine("Google Drive - Upload time of {0} files each of size {1} {2}B: {3} s", n, k, type, t.TotalSeconds);
+            Console.WriteLine("{0} - Upload time of {1} files each of size {2} {3}: {4} s", cloud.GetName(), n, k, type, t.TotalSeconds);
         }
         
         // Generate n files, each file of size k
         // type: m - MB, k - KB
-        private static void GenerateLoad(int n, int k, char type)
+        private static void GenerateLoad(int n, int k, Type type)
         {
-            var fileSize = (int)(Math.Pow(2, 20) / 4);
-            
-            if (type == 'k')
-                fileSize = (int)(Math.Pow(2, 10) / 4);
+            var fileSize = (int)(Math.Pow(2, (int)type) / 4);
             
             var rand = new Random();
 
