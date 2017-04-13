@@ -34,7 +34,7 @@ namespace BenchmarkingCloudStorage
             Mega m = new Mega();
 
             Upload(gd, n, k, type);
-            Upload(m, n, k, type);
+            //Upload(m, n, k, type);
             Console.ReadLine();
         }
 
@@ -63,10 +63,9 @@ namespace BenchmarkingCloudStorage
         }
         
         // Generate n files, each file of size k
-        // type: m - MB, k - KB
         private static void GenerateLoad(int n, int k, Type type)
         {
-            var fileSize = (int)(Math.Pow(2, (int)type) / 4);
+            var fileSize = (int)(Math.Pow(2, (int)type) / 4) * k;
             
             var rand = new Random();
 
@@ -74,7 +73,7 @@ namespace BenchmarkingCloudStorage
             {
                 File.Delete($"out{i}.bin");
                 using (var writer = new BinaryWriter(File.Open($"out{i}.bin", FileMode.CreateNew)))
-                    for (var j = 0; j < fileSize*k; j++)
+                    for (var j = 0; j < fileSize; j++)
                         writer.Write(rand.Next());
             }
         }  
