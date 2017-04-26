@@ -79,7 +79,7 @@ namespace BenchmarkingCloudStorage
 
                 TimeSpan t = DateTime.Now - t1;
                 times.Add(t);
-                Console.WriteLine("t{0}: {1} s", i+1, t);
+                Console.WriteLine("t{0}: {1} s", i+1, t.TotalSeconds);
             }
 
             double avg = times.Count > 0 ? times.Average(ts => ts.TotalSeconds) : 0.0;
