@@ -21,8 +21,8 @@ namespace BenchmarkingCloudStorage
         static void Main(string[] args)
         {
             // Test One: consecutive upload of 10 files of sizes 1 KB, 100 KB, 1 MB, 5 MB
-            int[] sizes = {1, 100, 1, 5};
-            Type[] types = {Type.KB, Type.KB, Type.MB, Type.MB};
+            int[] sizes = { 1, 100, 1, 5 };
+            Type[] types = { Type.KB, Type.KB, Type.MB, Type.MB };
 
             for (var i = 0; i < 4; i++)
             {
@@ -49,8 +49,6 @@ namespace BenchmarkingCloudStorage
             
             Upload(gd, n, k, type);
             Upload(m, n, k, type);
-            
-            Console.ReadLine();
         }
 
         private static void Upload(IClouds cloud, int n, int k, Type type)
@@ -85,6 +83,7 @@ namespace BenchmarkingCloudStorage
             double avg = times.Count > 0 ? times.Average(ts => ts.TotalSeconds) : 0.0;
 
             Console.WriteLine("avg t: {0} s", avg);
+            Console.WriteLine();
         }
         
         // Generate n files, each file of size k
