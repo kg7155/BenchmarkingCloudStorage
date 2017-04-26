@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
 
 namespace BenchmarkingCloudStorage
@@ -9,10 +10,12 @@ namespace BenchmarkingCloudStorage
     {
         private MegaApiClient _service;
 
-        public void StartService()
+        public Task StartService()
         {
             _service = new MegaApiClient();
             _service.Login("project.zzrs@gmail.com", "mega2017zzrs");
+
+            return null;
         }
 
         public void UploadFile(Stream stream, string filepath)

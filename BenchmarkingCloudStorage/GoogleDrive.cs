@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
@@ -26,7 +27,7 @@ namespace BenchmarkingCloudStorage
                            DriveService.Scope.DriveScripts };
         static string ApplicationName = "Benchmarking Cloud Storage";
 
-        public void StartService()
+        public Task StartService()
         {
             // Create user credentials.
             UserCredential credential;
@@ -51,6 +52,8 @@ namespace BenchmarkingCloudStorage
                 HttpClientInitializer = credential,
                 ApplicationName = ApplicationName
             });
+
+            return null;
         }
         
         public void UploadFile(Stream stream, string filepath)

@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BenchmarkingCloudStorage
 {
     public interface IClouds
     {
-        void StartService();
+        Task StartService();
         void UploadFile(Stream stream, string filepath);
         void ListFiles();
         string GetName();
@@ -19,22 +20,36 @@ namespace BenchmarkingCloudStorage
 
         static void Main(string[] args)
         {
-            // Number of files.
-            int n = 3;
+            // Test One: consecutive upload of 10 files of sizes 1 KB, 100 KB, 1 MB, 5 MB
+            int[] sizes = {1, 100, 1, 5};
+            Type[] types = {Type.KB, Type.KB, Type.MB, Type.MB};
 
-            // Size of each file.
-            int k = 1;
+            for (var i = 0; i < 4; i++)
+            {
+                GenerateLoad(10, sizes[i], types[i]);
+                RunTest(10, sizes[i], types[i]);
+            }
 
-            // Type of file's size.
-            var type = Type.KB;
+            // Test Two: consecutive upload of different number of files with same size (1 KB)
+            int[] numFiles = {5, 10, 20, 50, 100};
             
-            GenerateLoad(n, k, type);
-
+            for (var i = 0; i < 5; i++)
+            {
+                GenerateLoad(numFiles[i], 1, Type.KB);
+                RunTest(numFiles[i], 1, Type.KB);
+            }
+            
+            Console.ReadLine();
+        }
+        
+        private static void RunTest(int n, int k, Type type)
+        {
             GoogleDrive gd = new GoogleDrive();
             Mega m = new Mega();
-
+            
             Upload(gd, n, k, type);
-            //Upload(m, n, k, type);
+            Upload(m, n, k, type);
+            
             Console.ReadLine();
         }
 
@@ -50,16 +65,24 @@ namespace BenchmarkingCloudStorage
                 streams.Add(new MemoryStream(byteArray));
             }
 
-            DateTime t1 = DateTime.Now;
+            List<TimeSpan> times = new List<TimeSpan>();
 
-            for (var j = 0; j < n; j++)
+            for (var i = 0; i < 3; i++)
             {
-                cloud.UploadFile(streams.ElementAt(j), $"out{j}.bin");
-            }
-            
-            TimeSpan t = DateTime.Now - t1;
+                DateTime t1 = DateTime.Now;
 
-            Console.WriteLine("{0} - Upload time of {1} files each of size {2} {3}: {4} s", cloud.GetName(), n, k, type, t.TotalSeconds);
+                for (var j = 0; j < n; j++)
+                {
+                    cloud.UploadFile(streams.ElementAt(j), $"out{j}.bin");
+                }
+
+                TimeSpan t = DateTime.Now - t1;
+                times.Add(t);
+            }
+
+            double avg = times.Count > 0 ? times.Average(ts => ts.TotalSeconds) : 0.0;
+
+            Console.WriteLine("{0} - Average upload time of {1} files each of size {2} {3}: {4} s", cloud.GetName(), n, k, type, avg);
         }
         
         // Generate n files, each file of size k
