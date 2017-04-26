@@ -67,6 +67,7 @@ namespace BenchmarkingCloudStorage
 
             List<TimeSpan> times = new List<TimeSpan>();
 
+            Console.WriteLine("{0} - {1} files each of size {2} {3}", cloud.GetName(), n, k, type);
             for (var i = 0; i < 3; i++)
             {
                 DateTime t1 = DateTime.Now;
@@ -78,11 +79,12 @@ namespace BenchmarkingCloudStorage
 
                 TimeSpan t = DateTime.Now - t1;
                 times.Add(t);
+                Console.WriteLine("t{0}: {1} s", i+1, t);
             }
 
             double avg = times.Count > 0 ? times.Average(ts => ts.TotalSeconds) : 0.0;
 
-            Console.WriteLine("{0} - Average upload time of {1} files each of size {2} {3}: {4} s", cloud.GetName(), n, k, type, avg);
+            Console.WriteLine("avg t: {0} s", avg);
         }
         
         // Generate n files, each file of size k

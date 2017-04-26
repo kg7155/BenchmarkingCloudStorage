@@ -23,7 +23,15 @@ namespace BenchmarkingCloudStorage
             var nodes = _service.GetNodes();
             INode root = nodes.Single(s => s.Type == NodeType.Root);
 
-            _service.Upload(stream, filepath, root);
+            try
+            {
+                _service.Upload(stream, filepath, root);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         public void ListFiles()
