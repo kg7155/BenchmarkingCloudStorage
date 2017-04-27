@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,7 +14,8 @@ namespace BenchmarkingCloudStorage
 
         public Task StartService()
         {
-            _service = new DropboxClient("YWe0VYAez9AAAAAAAAAACGy_E89l7MsgPy9vScQqb4rdkcsVpK9h-250Vbewzhmv");
+            var accessToken = ConfigurationManager.AppSettings["DropboxAccessToken"];
+            _service = new DropboxClient(accessToken);
 
             return null;
         }
