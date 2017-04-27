@@ -10,7 +10,7 @@ namespace BenchmarkingCloudStorage
     {
         Task StartService();
         void UploadFile(Stream stream, string filepath);
-        void ListFiles();
+        Task ListFiles();
         string GetName();
     }
 
@@ -31,14 +31,14 @@ namespace BenchmarkingCloudStorage
             }
 
             // Test Two: consecutive upload of different number of files with same size (1 KB)
-            int[] numFiles = {5, 10, 20, 50, 100};
-            
+            int[] numFiles = { 5, 10, 20, 50, 100 };
+
             for (var i = 0; i < 5; i++)
             {
                 GenerateLoad(numFiles[i], 1, Type.KB);
                 RunTest(numFiles[i], 1, Type.KB);
             }
-            
+
             Console.ReadLine();
         }
         
@@ -46,9 +46,14 @@ namespace BenchmarkingCloudStorage
         {
             GoogleDrive gd = new GoogleDrive();
             Mega m = new Mega();
-            
+            Dropbox db = new Dropbox();
+
             Upload(gd, n, k, type);
             Upload(m, n, k, type);
+            Upload(db, n, k, type);
+            
+            //var task = Task.Run((Func<Task>) db.ListFiles);
+            //task.Wait();
         }
 
         private static void Upload(IClouds cloud, int n, int k, Type type)

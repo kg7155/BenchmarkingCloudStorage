@@ -7,7 +7,6 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using Microsoft.Win32;
 using File = Google.Apis.Drive.v3.Data.File;
 
 namespace BenchmarkingCloudStorage
@@ -75,7 +74,7 @@ namespace BenchmarkingCloudStorage
             }
         }
 
-        public void ListFiles()
+        public Task ListFiles()
         {
             FilesResource.ListRequest listRequest = _service.Files.List();
             listRequest.PageSize = 10;
@@ -97,6 +96,7 @@ namespace BenchmarkingCloudStorage
                 Console.WriteLine("No files found.");
             }
             Console.ReadLine();
+            return null;
         }
 
         public string GetName()

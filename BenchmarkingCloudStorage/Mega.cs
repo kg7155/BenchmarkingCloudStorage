@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,7 +14,9 @@ namespace BenchmarkingCloudStorage
         public Task StartService()
         {
             _service = new MegaApiClient();
-            _service.Login("project.zzrs@gmail.com", "mega2017zzrs");
+            var username = ConfigurationManager.AppSettings["MegaUsername"];
+            var password = ConfigurationManager.AppSettings["MegaPassword"];
+            _service.Login(username, password);
 
             return null;
         }
@@ -34,7 +37,7 @@ namespace BenchmarkingCloudStorage
             }
         }
 
-        public void ListFiles()
+        public Task ListFiles()
         {
             var nodes = _service.GetNodes();
             foreach (var node in nodes)
@@ -46,6 +49,7 @@ namespace BenchmarkingCloudStorage
                 Console.WriteLine("No files found.");
 
             Console.ReadLine();
+            return null;
         }
 
         public string GetName()
