@@ -20,10 +20,20 @@ namespace BenchmarkingCloudStorage
             return null;
         }
 
+        public async Task DeleteFiles()
+        {
+            var list = await _service.Files.ListFolderAsync(string.Empty);
+
+            foreach (var item in list.Entries.Where(i => i.IsFile))
+            {
+                await _service.Files.DeleteAsync("/" + item.Name);
+            }
+        }
+
         public void UploadFile(Stream stream, string filepath)
         {
-            // this method can be used for files up to 150 MB!
-            _service.Files.UploadAsync('/' + filepath, WriteMode.Overwrite.Instance, body: stream);
+            // this method can be used for files up to 150 MB only!
+            _service.Files.UploadAsync('/' + filepath, WriteMode.Add.Instance, body: stream);
         }
 
         public async Task ListFiles()

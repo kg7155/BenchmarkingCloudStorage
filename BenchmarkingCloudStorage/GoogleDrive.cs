@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
+using Google.Apis.Drive.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using File = Google.Apis.Drive.v3.Data.File;
@@ -54,7 +56,35 @@ namespace BenchmarkingCloudStorage
 
             return null;
         }
-        
+
+        public Task DeleteFiles()
+        {
+            List<File> result = new List<File>();
+            FilesResource.ListRequest listRequest = _service.Files.List();
+            listRequest.Fields = "nextPageToken, files(id, name)";
+            listRequest.PageSize = 1000;
+
+            do
+            {
+                try
+                {
+                    FileList files = listRequest.Execute();
+                    result.AddRange(files.Files);
+                    listRequest.PageToken = files.NextPageToken;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("An error occurred: " + e.Message);
+                    listRequest.PageToken = null;
+                }
+            } while (!String.IsNullOrEmpty(listRequest.PageToken));
+            
+            foreach (var file in result)
+                _service.Files.Delete(file.Id).Execute();
+         
+            return null;
+        }
+
         public void UploadFile(Stream stream, string filepath)
         {
             File body = new File

@@ -9,6 +9,7 @@ namespace BenchmarkingCloudStorage
     public interface IClouds
     {
         Task StartService();
+        Task DeleteFiles();
         void UploadFile(Stream stream, string filepath);
         Task ListFiles();
         string GetName();
@@ -20,6 +21,17 @@ namespace BenchmarkingCloudStorage
 
         static void Main(string[] args)
         {
+            GoogleDrive gd = new GoogleDrive();
+            Mega m = new Mega();
+            Dropbox db = new Dropbox();
+
+            IClouds[] clouds = {gd, m, db};
+
+            foreach (var cloud in clouds)
+            {
+                cloud.StartService();
+            }
+
             // Test One: consecutive upload of 10 files of sizes 1 KB, 100 KB, 1 MB, 5 MB
             int[] sizes = { 1, 100, 1, 5 };
             Type[] types = { Type.KB, Type.KB, Type.MB, Type.MB };
@@ -27,7 +39,10 @@ namespace BenchmarkingCloudStorage
             for (var i = 0; i < 4; i++)
             {
                 GenerateLoad(10, sizes[i], types[i]);
-                RunTest(10, sizes[i], types[i]);
+                foreach (var cloud in clouds)
+                {
+                    Upload(cloud, 10, sizes[i], types[i]);
+                }
             }
 
             // Test Two: consecutive upload of different number of files with same size (1 KB)
@@ -36,30 +51,20 @@ namespace BenchmarkingCloudStorage
             for (var i = 0; i < 5; i++)
             {
                 GenerateLoad(numFiles[i], 1, Type.KB);
-                RunTest(numFiles[i], 1, Type.KB);
+                foreach (var cloud in clouds)
+                {
+                    Upload(cloud, numFiles[i], 1, Type.KB);
+                }
             }
 
+            //var task = Task.Run((Func<Task>) db.ListFiles);
+            //task.Wait();
             Console.ReadLine();
         }
         
-        private static void RunTest(int n, int k, Type type)
-        {
-            GoogleDrive gd = new GoogleDrive();
-            Mega m = new Mega();
-            Dropbox db = new Dropbox();
-
-            Upload(gd, n, k, type);
-            Upload(m, n, k, type);
-            Upload(db, n, k, type);
-            
-            //var task = Task.Run((Func<Task>) db.ListFiles);
-            //task.Wait();
-        }
-
+        // Run upload tests on the cloud
         private static void Upload(IClouds cloud, int n, int k, Type type)
         {
-            cloud.StartService();
-
             List<Stream> streams = new List<Stream>();
 
             for (var i = 0; i < n; i++)
@@ -67,12 +72,14 @@ namespace BenchmarkingCloudStorage
                 byte[] byteArray = File.ReadAllBytes($"out{i}.bin");
                 streams.Add(new MemoryStream(byteArray));
             }
-
+            
             List<TimeSpan> times = new List<TimeSpan>();
 
             Console.WriteLine("{0} - {1} files each of size {2} {3}", cloud.GetName(), n, k, type);
             for (var i = 0; i < 3; i++)
             {
+                cloud.DeleteFiles();
+                
                 DateTime t1 = DateTime.Now;
 
                 for (var j = 0; j < n; j++)

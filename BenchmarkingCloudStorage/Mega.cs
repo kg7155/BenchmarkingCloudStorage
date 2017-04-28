@@ -21,6 +21,17 @@ namespace BenchmarkingCloudStorage
             return null;
         }
 
+        public Task DeleteFiles()
+        {
+            var nodes = _service.GetNodes();
+            foreach (var node in nodes)
+            {
+                if (node.Type == NodeType.File)
+                    _service.Delete(node, moveToTrash: false);
+            }
+            return null;
+        }
+
         public void UploadFile(Stream stream, string filepath)
         {
             var nodes = _service.GetNodes();
