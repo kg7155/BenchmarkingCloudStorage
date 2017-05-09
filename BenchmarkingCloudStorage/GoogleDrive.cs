@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -28,7 +27,7 @@ namespace BenchmarkingCloudStorage
                            DriveService.Scope.DriveScripts };
         static string ApplicationName = "Benchmarking Cloud Storage";
 
-        public Task StartService()
+        public void StartService()
         {
             // Create user credentials.
             UserCredential credential;
@@ -53,8 +52,6 @@ namespace BenchmarkingCloudStorage
                 HttpClientInitializer = credential,
                 ApplicationName = ApplicationName
             });
-
-            return null;
         }
 
         public Task DeleteFiles()
@@ -81,30 +78,55 @@ namespace BenchmarkingCloudStorage
             
             foreach (var file in result)
                 _service.Files.Delete(file.Id).Execute();
-         
+
             return null;
         }
 
-        public void UploadFile(Stream stream, string filepath)
+        public Task UploadFile(Stream stream, string filename)
         {
             File body = new File
             {
-                Name = Path.GetFileName(filepath),
+                Name = Path.GetFileName(filename),
                 MimeType = "application/unknown"
             };
             
             try
             {
                 FilesResource.CreateMediaUpload request = _service.Files.Create(body, stream, body.MimeType);
+                
                 request.Upload();
             }
             catch (Exception e)
             {
                 Console.WriteLine("An error occurred: " + e.Message);
             }
+            return null;
         }
 
-        public Task ListFiles()
+        public void DownloadFiles()
+        {
+            FilesResource.ListRequest listRequest = _service.Files.List();
+            listRequest.PageSize = 10;
+            listRequest.Fields = "nextPageToken, files(id, name)";
+
+            IList<File> files = listRequest.Execute().Files;
+            
+            if (files != null && files.Count > 0)
+            {
+                foreach (var f in files)
+                {
+                    var request = _service.Files.Get(f.Id);
+                    var stream = new System.IO.MemoryStream();
+                    request.Download(stream);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No files found.");
+            }           
+        }
+
+        public void ListFiles()
         {
             FilesResource.ListRequest listRequest = _service.Files.List();
             listRequest.PageSize = 10;
@@ -126,7 +148,6 @@ namespace BenchmarkingCloudStorage
                 Console.WriteLine("No files found.");
             }
             Console.ReadLine();
-            return null;
         }
 
         public string GetName()

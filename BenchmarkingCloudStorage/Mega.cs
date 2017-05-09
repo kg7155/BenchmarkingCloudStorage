@@ -11,19 +11,18 @@ namespace BenchmarkingCloudStorage
     {
         private MegaApiClient _service;
 
-        public Task StartService()
+        public void StartService()
         {
             _service = new MegaApiClient();
             var username = ConfigurationManager.AppSettings["MegaUsername"];
             var password = ConfigurationManager.AppSettings["MegaPassword"];
             _service.Login(username, password);
-
-            return null;
         }
 
         public Task DeleteFiles()
         {
             var nodes = _service.GetNodes();
+            
             foreach (var node in nodes)
             {
                 if (node.Type == NodeType.File)
@@ -32,23 +31,35 @@ namespace BenchmarkingCloudStorage
             return null;
         }
 
-        public void UploadFile(Stream stream, string filepath)
+        public Task UploadFile(Stream stream, string filename)
         {
             var nodes = _service.GetNodes();
             INode root = nodes.Single(s => s.Type == NodeType.Root);
 
             try
             {
-                _service.Upload(stream, filepath, root);
+                _service.Upload(stream, filename, root);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
+            return null;
         }
 
-        public Task ListFiles()
+        public void DownloadFiles()
+        {
+            var nodes = _service.GetNodes();
+            
+            foreach (var node in nodes)
+            {
+                if (node.Type == NodeType.File)
+                    _service.DownloadFile(node, node.Name);
+            }
+        }
+
+        public void ListFiles()
         {
             var nodes = _service.GetNodes();
             foreach (var node in nodes)
@@ -60,7 +71,6 @@ namespace BenchmarkingCloudStorage
                 Console.WriteLine("No files found.");
 
             Console.ReadLine();
-            return null;
         }
 
         public string GetName()

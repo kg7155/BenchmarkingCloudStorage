@@ -2,9 +2,9 @@
 using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Dropbox.Api;
 using Dropbox.Api.Files;
+using System.Threading.Tasks;
 
 namespace BenchmarkingCloudStorage
 {
@@ -12,12 +12,10 @@ namespace BenchmarkingCloudStorage
     {
         private DropboxClient _service;
 
-        public Task StartService()
+        public void StartService()
         {
             var accessToken = ConfigurationManager.AppSettings["DropboxAccessToken"];
             _service = new DropboxClient(accessToken);
-
-            return null;
         }
 
         public async Task DeleteFiles()
@@ -26,17 +24,27 @@ namespace BenchmarkingCloudStorage
 
             foreach (var item in list.Entries.Where(i => i.IsFile))
             {
-                await _service.Files.DeleteAsync("/" + item.Name);
+                await _service.Files.DeleteAsync(item.PathLower);
             }
         }
 
-        public void UploadFile(Stream stream, string filepath)
+        public async Task UploadFile(Stream stream, string filename)
         {
             // this method can be used for files up to 150 MB only!
-            _service.Files.UploadAsync('/' + filepath, WriteMode.Add.Instance, body: stream);
+            await _service.Files.UploadAsync('/' + filename, WriteMode.Add.Instance, body: stream);
         }
 
-        public async Task ListFiles()
+        public async void DownloadFiles()
+        {
+            var list = await _service.Files.ListFolderAsync(string.Empty);
+
+            foreach (var item in list.Entries.Where(i => i.IsFile))
+            {
+                await _service.Files.DownloadAsync('/' + item.Name);
+            }
+        }
+
+        public async void ListFiles()
         {
             var list = await _service.Files.ListFolderAsync(string.Empty);
 
