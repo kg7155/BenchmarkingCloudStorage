@@ -28,37 +28,64 @@ namespace BenchmarkingCloudStorage
 
             IClouds[] clouds = {gd, m, db};
 
-            foreach (var cloud in clouds)
-            {
-                cloud.StartService();
-            }
+            //foreach (var cloud in clouds)
+            //{
+            //    cloud.StartService();
+            //}
+
+            gd.StartService();
+            PingTest(gd);
 
             // Test One: upload and download of 10 files of sizes 1 KB, 1 MB, 2 MB, 3 MB, 4 MB, 5 MB, 10 MB, 20 MB
-            int[] sizes = { 1, 1, 2, 3, 4, 5, 10, 20 };
-            Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
+            //int[] sizes = { 1, 1, 2, 3, 4, 5, 10, 20 };
+            //Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
 
-            for (var i = 0; i < 4; i++)
-            {
-                foreach (var cloud in clouds)
-                {
-                    Test(cloud, 10, sizes[i], types[i]);
-                }
-            }
+            //for (var i = 0; i < 4; i++)
+            //{
+            //    foreach (var cloud in clouds)
+            //    {
+            //        Test(cloud, 10, sizes[i], types[i]);
+            //    }
+            //}
 
-            // Test Two: upload and download of different number of files with same size (1 MB)
-            int[] numFiles = { 5, 10, 20, 50, 100 };
+            //// Test Two: upload and download of different number of files with same size (1 MB)
+            //int[] numFiles = { 5, 10, 20, 50, 100 };
 
-            for (var i = 0; i < 5; i++)
-            {
-                foreach (var cloud in clouds)
-                {
-                    Test(cloud, numFiles[i], 1, Type.MB);
-                }
-            }
-
+            //for (var i = 0; i < 5; i++)
+            //{
+            //    foreach (var cloud in clouds)
+            //    {
+            //        Test(cloud, numFiles[i], 1, Type.MB);
+            //    }
+            //}
+            
             //var task = Task.Run((Func<Task>)db.ListFiles);
             //task.Wait();
             Console.ReadLine();
+        }
+
+        // Upload 1 MB file every 10-ish seconds
+        private static void PingTest(IClouds cloud)
+        {
+            GenerateLoad(1, 1, Type.MB);
+            byte[] byteArray = File.ReadAllBytes($"0.jpg");
+            Stream stream = new MemoryStream(byteArray);
+
+            StreamWriter sw = File.CreateText("results.txt");
+            
+            for (var i = 0; i < 21600; i++)
+            {
+                DateTime t1 = DateTime.Now;
+                cloud.UploadFile(stream, $"0.jpg");
+                TimeSpan t = DateTime.Now - t1;
+                
+                sw.WriteLine("{0}", t.TotalSeconds);
+                sw.Flush();
+                stream.Seek(0, SeekOrigin.Begin);
+                System.Threading.Thread.Sleep(10000);
+            }
+            sw.Close();
+            Console.WriteLine("Done");
         }
         
         // Run test
