@@ -38,30 +38,39 @@ namespace BenchmarkingCloudStorage
             //PingTest(gd);
 
             //Test One: upload and download of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB
-            File.Delete("one.txt");
-            int[] sizes = { 1, 1, 3, 5, 10, 20 };
-            Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
+            //File.Delete("one.txt");
+            //int[] sizes = { 1, 1, 3, 5, 10, 20 };
+            //Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
 
-            for (var i = 0; i < sizes.Length; i++)
+            //for (var i = 0; i < sizes.Length; i++)
+            //{
+            //    foreach (var cloud in clouds)
+            //    {
+            //        Test("one.txt", cloud, 10, sizes[i], types[i]);
+            //    }
+            //}
+
+            //// Test Two: upload and download of different number of files with same size (1 MB)
+            //File.Delete("two.txt");
+            //int[] numFiles = { 5, 10, 20, 50, 100 };
+
+            //for (var i = 0; i < numFiles.Length; i++)
+            //{
+            //    foreach (var cloud in clouds)
+            //    {
+            //        Test("two.txt", cloud, numFiles[i], 1, Type.MB);
+            //    }
+            //}
+
+            File.Delete("one_20MB.txt");
+            foreach (var cloud in clouds)
             {
-                foreach (var cloud in clouds)
-                {
-                    Test("one.txt", cloud, 10, sizes[i], types[i]);
-                }
+                Test("one_20MB.txt", cloud, 10, 20, Type.MB);
             }
 
-            // Test Two: upload and download of different number of files with same size (1 MB)
-            File.Delete("two.txt");
-            int[] numFiles = { 5, 10, 20, 50, 100 };
-
-            for (var i = 0; i < numFiles.Length; i++)
-            {
-                foreach (var cloud in clouds)
-                {
-                    Test("two.txt", cloud, numFiles[i], 1, Type.MB);
-                }
-            }
-
+            File.Delete("dropbox_50files");
+            Test("dropbox_50files", db, 50, 1, Type.MB);
+            
             //var task = Task.Run((Func<Task>)db.ListFiles);
             //task.Wait();
             Console.ReadLine();
@@ -103,8 +112,8 @@ namespace BenchmarkingCloudStorage
             sw.WriteLine("{0} - {1} files each of size {2} {3}", cloud.GetName(), n, k, type);
             sw.Flush();
             Console.WriteLine("{0} - {1} files each of size {2} {3}", cloud.GetName(), n, k, type);
-
-            for (var i = 0; i < 4; i++)
+            
+            for (var i = 0; i < 2; i++)
             {
                 GenerateLoad(n, k, type);
                 List<Stream> streams = GetStreams(n);
