@@ -62,14 +62,16 @@ namespace BenchmarkingCloudStorage
             //    }
             //}
 
-            File.Delete("one_20MB.txt");
-            foreach (var cloud in clouds)
-            {
-                Test("one_20MB.txt", cloud, 10, 20, Type.MB);
-            }
+            //Test Three: upload and download of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB with chunk size 50% lower than default!
+            File.Delete("three.txt");
+            int[] sizes = { 1, 1, 3, 5, 10, 20 };
+            Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
 
-            File.Delete("dropbox_50files");
-            Test("dropbox_50files", db, 50, 1, Type.MB);
+            for (var i = 0; i < sizes.Length; i++)
+            {
+                Test("three.txt", gd, 10, sizes[i], types[i]);
+                Test("three.txt", m, 10, sizes[i], types[i]);
+            }
             
             //var task = Task.Run((Func<Task>)db.ListFiles);
             //task.Wait();
@@ -113,7 +115,7 @@ namespace BenchmarkingCloudStorage
             sw.Flush();
             Console.WriteLine("{0} - {1} files each of size {2} {3}", cloud.GetName(), n, k, type);
             
-            for (var i = 0; i < 2; i++)
+            for (var i = 0; i < 4; i++)
             {
                 GenerateLoad(n, k, type);
                 List<Stream> streams = GetStreams(n);

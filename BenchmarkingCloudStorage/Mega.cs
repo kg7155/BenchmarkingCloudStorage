@@ -38,6 +38,7 @@ namespace BenchmarkingCloudStorage
 
             try
             {
+                _service.ChunksPackSize = 384;
                 _service.Upload(stream, filename, root);
             }
             catch (Exception e)

@@ -84,6 +84,7 @@ namespace BenchmarkingCloudStorage
 
         public Task UploadFile(Stream stream, string filename)
         {
+            
             File body = new File
             {
                 Name = Path.GetFileName(filename),
@@ -93,7 +94,8 @@ namespace BenchmarkingCloudStorage
             try
             {
                 FilesResource.CreateMediaUpload request = _service.Files.Create(body, stream, body.MimeType);
-                
+                // 5 MB
+                request.ChunkSize = 20 * Google.Apis.Upload.ResumableUpload.MinimumChunkSize;
                 request.Upload();
             }
             catch (Exception e)
