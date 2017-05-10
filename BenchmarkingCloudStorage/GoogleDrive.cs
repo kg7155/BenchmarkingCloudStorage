@@ -78,8 +78,8 @@ namespace BenchmarkingCloudStorage
             
             foreach (var file in result)
                 _service.Files.Delete(file.Id).Execute();
-
-            return null;
+            
+            return Task.FromResult(0);
         }
 
         public Task UploadFile(Stream stream, string filename)
@@ -100,10 +100,12 @@ namespace BenchmarkingCloudStorage
             {
                 Console.WriteLine("An error occurred: " + e.Message);
             }
-            return null;
+
+            Console.WriteLine("Done uploading");
+            return Task.FromResult(0);
         }
 
-        public void DownloadFiles()
+        public Task DownloadFiles()
         {
             FilesResource.ListRequest listRequest = _service.Files.List();
             listRequest.PageSize = 10;
@@ -123,31 +125,33 @@ namespace BenchmarkingCloudStorage
             else
             {
                 Console.WriteLine("No files found.");
-            }           
+            }
+
+            Console.WriteLine("Done downloading");
+            return Task.FromResult(0);
         }
 
-        public void ListFiles()
+        public Task ListFiles()
         {
             FilesResource.ListRequest listRequest = _service.Files.List();
             listRequest.PageSize = 10;
             listRequest.Fields = "nextPageToken, files(id, name)";
 
             IList<File> files = listRequest.Execute().Files;
-
-            Console.WriteLine("All files:");
-
+            
             if (files != null && files.Count > 0)
             {
                 foreach (var f in files)
                 {
-                    Console.WriteLine("{0} ({1})", f.Name, f.Id);
+                    Console.WriteLine("{0}", f.Name);
                 }
             }
             else
             {
                 Console.WriteLine("No files found.");
             }
-            Console.ReadLine();
+
+            return Task.FromResult(0);
         }
 
         public string GetName()

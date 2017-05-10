@@ -32,19 +32,25 @@ namespace BenchmarkingCloudStorage
         {
             // this method can be used for files up to 150 MB only!
             await _service.Files.UploadAsync('/' + filename, WriteMode.Add.Instance, body: stream);
+            
+            Console.WriteLine("Done uploading");
         }
 
-        public async void DownloadFiles()
+        public async Task DownloadFiles()
         {
             var list = await _service.Files.ListFolderAsync(string.Empty);
 
             foreach (var item in list.Entries.Where(i => i.IsFile))
             {
-                await _service.Files.DownloadAsync('/' + item.Name);
+                var download = await _service.Files.DownloadAsync('/' + item.Name);
+                var stream = await download.GetContentAsByteArrayAsync();
+
+                File.WriteAllBytes(item.Name, stream);
+                Console.WriteLine("Done downloading");
             }
         }
 
-        public async void ListFiles()
+        public async Task ListFiles()
         {
             var list = await _service.Files.ListFolderAsync(string.Empty);
 

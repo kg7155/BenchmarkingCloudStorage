@@ -28,7 +28,7 @@ namespace BenchmarkingCloudStorage
                 if (node.Type == NodeType.File)
                     _service.Delete(node, moveToTrash: false);
             }
-            return null;
+            return Task.FromResult(0);
         }
 
         public Task UploadFile(Stream stream, string filename)
@@ -45,10 +45,12 @@ namespace BenchmarkingCloudStorage
                 Console.WriteLine(e);
                 throw;
             }
-            return null;
+
+            Console.WriteLine("Done uploading");
+            return Task.FromResult(0);
         }
 
-        public void DownloadFiles()
+        public Task DownloadFiles()
         {
             var nodes = _service.GetNodes();
             
@@ -57,20 +59,24 @@ namespace BenchmarkingCloudStorage
                 if (node.Type == NodeType.File)
                     _service.DownloadFile(node, node.Name);
             }
+
+            Console.WriteLine("Done downloading");
+            return Task.FromResult(0);
         }
 
-        public void ListFiles()
+        public Task ListFiles()
         {
             var nodes = _service.GetNodes();
             foreach (var node in nodes)
             {
-                Console.WriteLine("{0}, {1}", node.Name, node.Size);
+                if (node.Type == NodeType.File)
+                    Console.WriteLine("{0}, {1}", node.Name, node.Size);
             }
 
             if (!nodes.Any())
                 Console.WriteLine("No files found.");
 
-            Console.ReadLine();
+            return Task.FromResult(0);
         }
 
         public string GetName()
