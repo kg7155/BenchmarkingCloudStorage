@@ -32,15 +32,15 @@ namespace BenchmarkingCloudStorage
             {
                 cloud.StartService();
             }
-            
+
             // Test Zero: Ping with 1 MB file every 10 seconds
             //gd.StartService();
             //PingTest(gd);
 
-            //Test One: upload and download of 10 files of sizes 1 KB, 1 MB, 2 MB, 3 MB, 4 MB, 5 MB, 10 MB, 20 MB
+            //Test One: upload and download of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB
             File.Delete("one.txt");
-            int[] sizes = { 1, 1, 2, 3, 4, 5, 10, 20 };
-            Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
+            int[] sizes = { 1, 1, 3, 5, 10, 20 };
+            Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
 
             for (var i = 0; i < sizes.Length; i++)
             {
