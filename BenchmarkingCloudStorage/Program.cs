@@ -62,7 +62,7 @@ namespace BenchmarkingCloudStorage
             //    }
             //}
 
-            //Test Three: upload and download of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB with chunk size 50% lower than default!
+            //Test Three: upload of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB with chunk size 50% lower than default!
             File.Delete("three.txt");
             int[] sizes = { 1, 1, 3, 5, 10, 20 };
             Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
@@ -109,7 +109,7 @@ namespace BenchmarkingCloudStorage
             StreamWriter sw = new StreamWriter(filename, true);
 
             List<TimeSpan> timesUpload = new List<TimeSpan>();
-            List<TimeSpan> timesDownload = new List<TimeSpan>();
+            //List<TimeSpan> timesDownload = new List<TimeSpan>();
 
             sw.WriteLine("{0} - {1} files each of size {2} {3}", cloud.GetName(), n, k, type);
             sw.Flush();
@@ -137,28 +137,28 @@ namespace BenchmarkingCloudStorage
                 sw.Flush();
                 Console.WriteLine("t{0}(upload): {1} s", i+1, t.TotalSeconds);
 
-                t1 = DateTime.Now;
-                cloud.DownloadFiles().Wait();
-                t = DateTime.Now - t1;
-                timesDownload.Add(t);
+                //t1 = DateTime.Now;
+                //cloud.DownloadFiles().Wait();
+                //t = DateTime.Now - t1;
+                //timesDownload.Add(t);
 
-                sw.WriteLine("t{0}(download): {1} s", i + 1, t.TotalSeconds);
-                sw.Flush();
-                Console.WriteLine("t{0}(download): {1} s\n", i + 1, t.TotalSeconds);
+                //sw.WriteLine("t{0}(download): {1} s", i + 1, t.TotalSeconds);
+                //sw.Flush();
+                //Console.WriteLine("t{0}(download): {1} s\n", i + 1, t.TotalSeconds);
             }
 
             timesUpload.RemoveAt(0);
-            timesDownload.RemoveAt(0);
+            //timesDownload.RemoveAt(0);
             double avgUpload = timesUpload.Count > 0 ? timesUpload.Average(ts => ts.TotalSeconds) : 0.0;
-            double avgDownload = timesDownload.Count > 0 ? timesDownload.Average(ts => ts.TotalSeconds) : 0.0;
+            //double avgDownload = timesDownload.Count > 0 ? timesDownload.Average(ts => ts.TotalSeconds) : 0.0;
 
             sw.WriteLine("avg t(upload): {0} s", avgUpload);
-            sw.WriteLine("avg t(download): {0} s", avgDownload);
+            //sw.WriteLine("avg t(download): {0} s", avgDownload);
             sw.WriteLine("");
             sw.Flush();
             sw.Close();
             Console.WriteLine("avg t(upload): {0} s", avgUpload);
-            Console.WriteLine("avg t(download): {0} s\n", avgDownload);
+            //Console.WriteLine("avg t(download): {0} s\n", avgDownload);
         }
 
         // Get files' streams
