@@ -28,7 +28,7 @@ namespace BenchmarkingCloudStorage
             }
         }
 
-        public async Task UploadFile(Stream stream, string filename)
+        public async Task UploadFile(Stream stream, string filename, int chunkSize)
         {
             // this method can be used for files up to 150 MB only!
             await _service.Files.UploadAsync('/' + filename, WriteMode.Add.Instance, body: stream);

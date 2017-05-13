@@ -31,14 +31,16 @@ namespace BenchmarkingCloudStorage
             return Task.FromResult(0);
         }
 
-        public Task UploadFile(Stream stream, string filename)
+        public Task UploadFile(Stream stream, string filename, int chunkSize)
         {
             var nodes = _service.GetNodes();
             INode root = nodes.Single(s => s.Type == NodeType.Root);
 
+            if (chunkSize != 0)
+                _service.ChunksPackSize = chunkSize;
+
             try
             {
-                _service.ChunksPackSize = 384;
                 _service.Upload(stream, filename, root);
             }
             catch (Exception e)

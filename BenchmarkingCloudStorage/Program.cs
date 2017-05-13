@@ -10,7 +10,7 @@ namespace BenchmarkingCloudStorage
     {
         void StartService();
         Task DeleteFiles();
-        Task UploadFile(Stream stream, string filename);
+        Task UploadFile(Stream stream, string filename, int chunkSize);
         Task DownloadFiles();
         Task ListFiles();
         string GetName();
@@ -29,91 +29,71 @@ namespace BenchmarkingCloudStorage
             IClouds[] clouds = {gd, m, db};
 
             foreach (var cloud in clouds)
-            {
                 cloud.StartService();
-            }
+            
+            TestThree(gd, m);
+            Console.ReadLine();
+        }
 
-            // Test Zero: Ping with 1 MB file every 10 seconds
-            //gd.StartService();
-            //PingTest(gd);
-
-            //Test One: upload and download of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB
-            //File.Delete("one.txt");
-            //int[] sizes = { 1, 1, 3, 5, 10, 20 };
-            //Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
-
-            //for (var i = 0; i < sizes.Length; i++)
-            //{
-            //    foreach (var cloud in clouds)
-            //    {
-            //        Test("one.txt", cloud, 10, sizes[i], types[i]);
-            //    }
-            //}
-
-            //// Test Two: upload and download of different number of files with same size (1 MB)
-            //File.Delete("two.txt");
-            //int[] numFiles = { 5, 10, 20, 50, 100 };
-
-            //for (var i = 0; i < numFiles.Length; i++)
-            //{
-            //    foreach (var cloud in clouds)
-            //    {
-            //        Test("two.txt", cloud, numFiles[i], 1, Type.MB);
-            //    }
-            //}
-
-            //Test Three: upload of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB with chunk size 50% lower than default!
-            File.Delete("three.txt");
+        //Test One: upload and download of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB
+        private static void TestOne(IClouds[] clouds)
+        {
+            File.Delete("one.txt");
             int[] sizes = { 1, 1, 3, 5, 10, 20 };
             Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
 
             for (var i = 0; i < sizes.Length; i++)
             {
-                Test("three.txt", gd, 10, sizes[i], types[i]);
-                Test("three.txt", m, 10, sizes[i], types[i]);
+                foreach (var cloud in clouds)
+                    Test("one.txt", cloud, 10, sizes[i], types[i], 0);
             }
-            
-            //var task = Task.Run((Func<Task>)db.ListFiles);
-            //task.Wait();
-            Console.ReadLine();
         }
 
-        // Upload 1 MB file every 10-ish seconds
-        private static void PingTest(IClouds cloud)
+        // Test Two: upload and download of different number of files with same size (1 MB)
+        private static void TestTwo(IClouds[] clouds)
         {
-            GenerateLoad(1, 1, Type.MB);
-            byte[] byteArray = File.ReadAllBytes($"0.jpg");
-            Stream stream = new MemoryStream(byteArray);
+            File.Delete("two.txt");
+            int[] numFiles = { 5, 10, 20, 50, 100 };
 
-            StreamWriter sw = File.CreateText("results.txt");
-            
-            for (var i = 0; i < 21600; i++)
+            for (var i = 0; i < numFiles.Length; i++)
             {
-                cloud.DeleteFiles().Wait();
-                DateTime t1 = DateTime.Now;
-                cloud.UploadFile(stream, $"0.jpg").Wait();
-                TimeSpan t = DateTime.Now - t1;
-                
-                sw.WriteLine("{0}", t.TotalSeconds);
-                sw.Flush();
-                stream.Seek(0, SeekOrigin.Begin);
-                System.Threading.Thread.Sleep(10000);
+                foreach (var cloud in clouds)
+                    Test("two.txt", cloud, numFiles[i], 1, Type.MB, 0);
             }
-            sw.Close();
-            Console.WriteLine("Done");
+        }
+
+        //Test Three: upload of 10 files of sizes 1 KB, 1 MB, 3 MB, 5 MB, 10 MB, 20 MB with chunk size y (50% lower than default) and z (50% higher than default)
+        private static void TestThree(GoogleDrive gd, Mega m)
+        {
+            File.Delete("three_y_lower.txt");
+            File.Delete("three_z_higher.txt");
+            int[] sizes = { 1, 1, 3, 5, 10, 20 };
+            Type[] types = { Type.KB, Type.MB, Type.MB, Type.MB, Type.MB, Type.MB };
+
+            for (var i = 0; i < sizes.Length; i++)
+            {
+                Test("three_y_lower.txt", gd, 10, sizes[i], types[i], 5);
+                Test("three_y_lower.txt", m, 10, sizes[i], types[i], 512);
+            }
+
+            for (var i = 0; i < sizes.Length; i++)
+            {
+                Test("three_z_higher.txt", gd, 10, sizes[i], types[i], 15);
+                Test("three_z_higher.txt", m, 10, sizes[i], types[i], 1536);
+            }
         }
         
         // Run test
-        private static void Test(string filename, IClouds cloud, int n, int k, Type type)
+        private static void Test(string filename, IClouds cloud, int n, int k, Type type, int chunkSize)
         {
             StreamWriter sw = new StreamWriter(filename, true);
 
             List<TimeSpan> timesUpload = new List<TimeSpan>();
-            //List<TimeSpan> timesDownload = new List<TimeSpan>();
+            List<TimeSpan> timesDownload = new List<TimeSpan>();
 
-            sw.WriteLine("{0} - {1} files each of size {2} {3}", cloud.GetName(), n, k, type);
+            sw.WriteLine("{0} - {1} files each of size {2} {3} chunk size: {4}", cloud.GetName(), n, k, type, chunkSize);
             sw.Flush();
-            Console.WriteLine("{0} - {1} files each of size {2} {3}", cloud.GetName(), n, k, type);
+            Console.WriteLine("{0} - {1} files each of size {2} {3}, chunk size: {4}", cloud.GetName(), n, k, type, chunkSize);
             
             for (var i = 0; i < 4; i++)
             {
@@ -127,7 +107,7 @@ namespace BenchmarkingCloudStorage
 
                 for (var j = 0; j < n; j++)
                 {
-                    cloud.UploadFile(streams[j], $"{j}.jpg").Wait();
+                    cloud.UploadFile(streams[j], $"{j}.jpg", chunkSize).Wait();
                 }
 
                 TimeSpan t = DateTime.Now - t1;
@@ -137,28 +117,28 @@ namespace BenchmarkingCloudStorage
                 sw.Flush();
                 Console.WriteLine("t{0}(upload): {1} s", i+1, t.TotalSeconds);
 
-                //t1 = DateTime.Now;
-                //cloud.DownloadFiles().Wait();
-                //t = DateTime.Now - t1;
-                //timesDownload.Add(t);
+                t1 = DateTime.Now;
+                cloud.DownloadFiles().Wait();
+                t = DateTime.Now - t1;
+                timesDownload.Add(t);
 
-                //sw.WriteLine("t{0}(download): {1} s", i + 1, t.TotalSeconds);
-                //sw.Flush();
-                //Console.WriteLine("t{0}(download): {1} s\n", i + 1, t.TotalSeconds);
+                sw.WriteLine("t{0}(download): {1} s", i + 1, t.TotalSeconds);
+                sw.Flush();
+                Console.WriteLine("t{0}(download): {1} s\n", i + 1, t.TotalSeconds);
             }
 
             timesUpload.RemoveAt(0);
-            //timesDownload.RemoveAt(0);
+            timesDownload.RemoveAt(0);
             double avgUpload = timesUpload.Count > 0 ? timesUpload.Average(ts => ts.TotalSeconds) : 0.0;
-            //double avgDownload = timesDownload.Count > 0 ? timesDownload.Average(ts => ts.TotalSeconds) : 0.0;
+            double avgDownload = timesDownload.Count > 0 ? timesDownload.Average(ts => ts.TotalSeconds) : 0.0;
 
             sw.WriteLine("avg t(upload): {0} s", avgUpload);
-            //sw.WriteLine("avg t(download): {0} s", avgDownload);
+            sw.WriteLine("avg t(download): {0} s", avgDownload);
             sw.WriteLine("");
             sw.Flush();
             sw.Close();
             Console.WriteLine("avg t(upload): {0} s", avgUpload);
-            //Console.WriteLine("avg t(download): {0} s\n", avgDownload);
+            Console.WriteLine("avg t(download): {0} s\n", avgDownload);
         }
 
         // Get files' streams
@@ -221,7 +201,7 @@ namespace BenchmarkingCloudStorage
             for (var j = 0; j < n; j++)
             {
                 cloud.ListFiles().Wait();
-                cloud.UploadFile(streams[j], $"{j}.jpg").Wait();
+                cloud.UploadFile(streams[j], $"{j}.jpg",0).Wait();
                 Console.WriteLine("Done in loop");
             }
 

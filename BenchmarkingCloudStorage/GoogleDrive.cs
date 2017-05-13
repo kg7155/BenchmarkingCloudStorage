@@ -82,7 +82,8 @@ namespace BenchmarkingCloudStorage
             return Task.FromResult(0);
         }
 
-        public Task UploadFile(Stream stream, string filename)
+        // chunkSize is in MB!
+        public Task UploadFile(Stream stream, string filename, int chunkSize)
         {
             
             File body = new File
@@ -94,8 +95,8 @@ namespace BenchmarkingCloudStorage
             try
             {
                 FilesResource.CreateMediaUpload request = _service.Files.Create(body, stream, body.MimeType);
-                // 5 MB
-                request.ChunkSize = 20 * Google.Apis.Upload.ResumableUpload.MinimumChunkSize;
+                if (chunkSize != 0)
+                    request.ChunkSize = chunkSize * 4 * Google.Apis.Upload.ResumableUpload.MinimumChunkSize;
                 request.Upload();
             }
             catch (Exception e)
