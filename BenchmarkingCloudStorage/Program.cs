@@ -26,12 +26,13 @@ namespace BenchmarkingCloudStorage
             Mega m = new Mega();
             Dropbox db = new Dropbox();
 
-            IClouds[] clouds = {gd, m, db};
+            //IClouds[] clouds = {gd, m, db};
+            IClouds[] clouds = {gd};
 
             foreach (var cloud in clouds)
                 cloud.StartService();
             
-            TestThree(gd, m);
+            TestTwo(clouds);
             Console.ReadLine();
         }
 
