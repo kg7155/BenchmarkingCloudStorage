@@ -31,9 +31,10 @@ namespace BenchmarkingCloudStorage
             foreach (var cloud in clouds)
                 cloud.StartService();
 
-            TestOne(clouds);
-            TestTwo(clouds);
-            TestThree(gd, m);
+            //TestOne(clouds);
+            //TestTwo(clouds);
+            //TestThree(gd, m);
+            TestFour(gd, m, db);
             Console.ReadLine();
         }
 
@@ -84,7 +85,52 @@ namespace BenchmarkingCloudStorage
                 Test("three_z_higher.txt", m, 10, sizes[i], types[i], 1536);
             }
         }
-        
+
+        // 24-hour consecutive upload test of 1 MB file
+        private static void TestFour(GoogleDrive gd, Mega m, Dropbox db)
+        {
+            File.Delete("four_GoogleDrive.txt");
+            File.Delete("four_Mega.txt");
+            File.Delete("four_Dropbox.txt");
+
+            var tasks = new Task[3];
+
+            while (true)
+            {
+                tasks[0] = new Task(() => Upload("four_GoogleDrive.txt", gd, 1, 1, Type.MB, 0));
+                tasks[1] = new Task(() => Upload("four_Mega.txt", m, 1, 1, Type.MB, 0));
+                tasks[2] = new Task(() => Upload("four_Dropbox.txt", db, 1, 1, Type.MB, 0));
+
+                foreach (var task in tasks)
+                    task.Start();
+
+                Task.WaitAll(tasks);
+            }
+        }
+
+        private static void Upload(string filename, IClouds cloud, int n, int k, Type type, int chunkSize)
+        {
+            StreamWriter sw = new StreamWriter(filename, true);
+            
+            var files = GenerateLoadRandomNames(n, k, type);
+            List<Stream> streams = GetStreamsFromNames(files);
+
+            DeleteLoadFromNames(files);
+            cloud.DeleteFiles().Wait();
+
+            DateTime t1 = DateTime.Now;
+
+            foreach (var file in files)
+                cloud.UploadFile(streams[0], $"{file}.jpg", chunkSize).Wait();
+
+            TimeSpan t = DateTime.Now - t1;
+            
+            sw.WriteLine("{0}\t{1}", t.TotalSeconds, DateTime.Now);
+            
+            sw.Flush();
+            sw.Close();
+        }
+
         // Run test
         private static void Test(string filename, IClouds cloud, int n, int k, Type type, int chunkSize)
         {
@@ -157,6 +203,19 @@ namespace BenchmarkingCloudStorage
             return streams;
         }
 
+        private static List<Stream> GetStreamsFromNames(List<string> files)
+        {
+            List<Stream> streams = new List<Stream>();
+
+            foreach(var file in files)
+            {
+                byte[] byteArray = File.ReadAllBytes($"{file}.jpg");
+                streams.Add(new MemoryStream(byteArray));
+            }
+
+            return streams;
+        }
+
         // Delete files on disk
         private static void DeleteLoad(int n)
         {
@@ -165,21 +224,52 @@ namespace BenchmarkingCloudStorage
                 File.Delete($"{i}.jpg");
             }
         }
-        
+
+        // Delete files on disk
+        private static void DeleteLoadFromNames(IEnumerable<string> files)
+        {
+            foreach(var file in files)
+            {
+                File.Delete($"{file}.jpg");
+            }
+        }
+
         // Generate n files on disk, each file of size k
         private static void GenerateLoad(int n, int k, Type type)
         {
             var fileSize = (int)(Math.Pow(2, (int)type) / 4) * k;
             
             var rand = new Random();
-
+            
             for (var i = 0; i < n; i++)
             {
-                File.Delete($"{i}.jpg");
-                using (var writer = new BinaryWriter(File.Open($"{i}.jpg", FileMode.CreateNew)))
+                var fileName = Guid.NewGuid().ToString();
+                File.Delete($"{fileName}.jpg");
+                using (var writer = new BinaryWriter(File.Open($"{fileName}.jpg", FileMode.CreateNew)))
                     for (var j = 0; j < fileSize; j++)
                         writer.Write(rand.Next());
             }
+        }
+
+        // Generate n files on disk, each file of size k
+        private static List<string> GenerateLoadRandomNames(int n, int k, Type type)
+        {
+            var fileSize = (int)(Math.Pow(2, (int)type) / 4) * k;
+
+            var rand = new Random();
+            var list = new List<string>();
+            for (var i = 0; i < n; i++)
+            {
+                var fileName = Guid.NewGuid().ToString();
+                File.Delete($"{fileName}.jpg");
+                using (var writer = new BinaryWriter(File.Open($"{fileName}.jpg", FileMode.CreateNew)))
+                    for (var j = 0; j < fileSize; j++)
+                        writer.Write(rand.Next());
+
+                list.Add(fileName);
+            }
+
+            return list;
         }
 
         private static void DebugTest(IClouds cloud, int n, int k, Type type)
