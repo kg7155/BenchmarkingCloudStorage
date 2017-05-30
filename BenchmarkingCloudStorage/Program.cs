@@ -31,9 +31,9 @@ namespace BenchmarkingCloudStorage
             foreach (var cloud in clouds)
                 cloud.StartService();
 
-            //TestOne(clouds);
-            //TestTwo(clouds);
-            //TestThree(gd, m);
+            TestOne(clouds);
+            TestTwo(clouds);
+            TestThree(gd, m);
             TestFour(gd, m, db);
             Console.ReadLine();
         }
@@ -86,7 +86,7 @@ namespace BenchmarkingCloudStorage
             }
         }
 
-        // 24-hour consecutive upload test of 1 MB file
+        // Test Four: 24-hour consecutive upload test of 1 MB file
         private static void TestFour(GoogleDrive gd, Mega m, Dropbox db)
         {
             File.Delete("four_GoogleDrive.txt");
@@ -270,36 +270,6 @@ namespace BenchmarkingCloudStorage
             }
 
             return list;
-        }
-
-        private static void DebugTest(IClouds cloud, int n, int k, Type type)
-        {
-            GenerateLoad(n, k, type);
-
-            List<Stream> streams = new List<Stream>();
-
-            for (var i = 0; i < n; i++)
-            {
-                byte[] byteArray = File.ReadAllBytes($"{i}.jpg");
-                streams.Add(new MemoryStream(byteArray));
-            }
-
-            DeleteLoad(n);
-            cloud.DeleteFiles().Wait();
-            Console.WriteLine("Files after delete:");
-            cloud.ListFiles().Wait();
-            Console.WriteLine("----------");
-
-            for (var j = 0; j < n; j++)
-            {
-                cloud.ListFiles().Wait();
-                cloud.UploadFile(streams[j], $"{j}.jpg",0).Wait();
-                Console.WriteLine("Done in loop");
-            }
-
-            cloud.ListFiles().Wait();
-            cloud.DownloadFiles().Wait();
-            Console.WriteLine("Done");
         }
     }
 }
